@@ -221,16 +221,12 @@ print('\n\n', table2)
 
 
 
-# Подсчет среднего времени в системе в ручную
-# medium_time_in_system = sum(diff_Di_Ai) / len(diff_Di_Ai)
-# print('Среднее время в системеD-A: ', np.mean(medium_time_in_system))
-
 print("Оценки:")
 print('Количество пациентов за смену: ', Amount)
 print('Время задержки закрытия: ', Tp)
 print('Среднее время пациента в очереди: ', np.mean(W))
 print('Среднее время пациента в системе: ', np.mean(np.array(D) - np.array(A)))
-print('Коэффициент занятости устройства: ', 1-(Work / T))
+print('Коэффициент занятости устройства: ', 1 - (Work / T))
 print('Средняя длина очереди: ', np.mean(N))
 
 print("=============")
@@ -245,3 +241,11 @@ for item in range(len(coming_patient_list_real_time)):
     coming_patient_list_real_time[item] = round(coming_patient_list_real_time[item] + 8.0, 5)
 print(coming_patient_list_real_time)
 
+plt.title("Очереди")
+plt.plot(np.arange(T_start, T_end, T / len(N)), N)
+plt.show()
+
+V = [D[i] - A[i] - W[i] for i in range(len(A))]
+plt.title("График обслуживания")
+plt.plot(list(range(len(A))), V)
+plt.show()
