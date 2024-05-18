@@ -78,11 +78,11 @@ def poison_process(t, poisson_lambda):
 
 
 # Приход пациента
-def arrival_patient():
+def add_client():
     global time, Ta, Na, n, Amount, Td
     time = Ta                                                   # Ta - время прибытия пациента
-    Na = Na + 1                                                 # Na - количество прибывших пациентов (номер пациента)
-    n = n + 1                                                   # n - количество пациентов
+    Na += 1                                                     # Na - количество прибывших клиентов (номер клиента)
+    n += 1                                                      # n - количество пациентов
     Ta = poison_process(time, poisson_lambda)                   # Ta = Tt время следующего прибытия пациента
     if n == 1:
         Td = time + exponential_process(exponential_lambda)     # Td - время уход пациента
@@ -90,15 +90,15 @@ def arrival_patient():
     Amount = Amount + 1                                         # Amount - количество пациентов
     N.append(n)                                                 # N - количество клиентов
     TimeEvent.append(time)                                      # TimeEvent - время события
-    Event.append('Пациент ' + str(Na) + ' пришел')              # Event - событие (пациент пришел)
+    Event.append('Клиент ' + str(Na) + ' пришел')               # Event - событие (пациент пришел)
 
 
 # Уход пациента
-def leave_patient():
+def remove_client():
     global Td, Nd, n, time
     time = Td                                                   # Td - время ухода пациента
-    Nd = Nd + 1                                                 # Nd - количество уходов пациента
-    n = n - 1                                                   # n - количество пациентов (уменьшается если уходит пациент)
+    Nd += 1                                                     # Nd - количество уходов пациента
+    n -= 1                                                      # n - количество пациентов (уменьшается если уходит пациент)
     if n == 0:                                                  # Если уходит последний пациент
         Td = 1e6                                                # Бесконечность
     else:                                                       # Если не уходит последний пациент
@@ -110,12 +110,12 @@ def leave_patient():
 
 
 # Пациенты, которые остались в очереди, но время работы закончилось
-def last_patient():
+def remove_last_clients():
     global Td, Nd, n, time
     time = Td                                                   # Td - время ухода пациента
     Nd += 1                                                     # Nd - количество уходов пациента
     n -= 1                                                      # n - количество пациентов (уменьшается если уходит пациент)
-    if (n > 0):                                                 # Если уходит последний пациент
+    if n > 0:                                                   # Если уходит последний пациент
         Td = time + exponential_process(exponential_lambda)     # Td - время ухода пациента
     D.append(time)                                              # D - время ухода пациента
     TimeEvent.append(time)                                      # TimeEvent - время события
@@ -124,7 +124,7 @@ def last_patient():
 
 
 # Если нет никаких пациентов
-def end_patient():
+def end_shift():
     global n, Tp, time, T
     Tp = max(time - T, 0)                                       # время после T, когда уходит последний пациент
 
@@ -140,26 +140,40 @@ T = T_end - T_start
 Ta = exponential_process(exponential_lambda)
 Td = 1e6
 
+
 print(f'Время начала смены: {T_start}')                         # Время начала смены
 print(f'Время окончания смены: {T_end}')                        # Время окончания смены
 print(f'Время работы: {T}')                                     # Время работы
 
+
 while True:
     if Ta <= Td and Ta <= T:
-        arrival_patient()
+        add_client()                                            # Добавить клиента
     if Td < Ta and Td <= T:
-        leave_patient()
+        remove_client()                                         # Обслужить клиента
     if min(Ta, Td) > T and n > 0:
-        last_patient()
+        remove_last_clients()                                   # Обслужить последних клиентов
     if min(Ta, Td) > T and n == 0:
-        end_patient()
+        end_shift()                                             # Закончить смену
         break
 
 
-table1 = PrettyTable(['Событие', 'Время события', 'Пациентов в очереди'])
-for i in range(len(TimeEvent)):
-    table1.add_row([Event[i], TimeEvent[i] + 8, N[i]])
 
+
+table1 = PrettyTable(['Событие', 'Время события', 'Пациентов в очереди'])
+for i in range(15):
+    if i == 14:
+        table1.add_row([Event[i], TimeEvent[i] + 8, N[i]], divider=True)
+    else:
+        table1.add_row([Event[i], TimeEvent[i] + 8, N[i]])
+for i in range(len(Event) - 15, len(Event)):
+    table1.add_row([Event[i], TimeEvent[i] + 8, N[i]])
+print(table1)
+
+
+
+
+for i in range(len(TimeEvent)):
     # Если событие - приход клиента (первый в очереди), и в очереди только один клиент,
     # то его время ожидания равно 0.
     if Event[i][0] == 'П' and (N[i] <= 1):
@@ -186,5 +200,4 @@ for i in range(len(TimeEvent)):
             else:
                 Work = TimeEvent[i] - TimeEvent[i - 1]
 
-print(table1)
 
