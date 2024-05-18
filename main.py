@@ -160,13 +160,15 @@ while True:
 
 
 
-table1 = PrettyTable(['Событие', 'Время события', 'Пациентов в очереди'])
-for i in range(15):
-    if i == 14:
+table1 = PrettyTable(['Событие',
+                      'Время события',
+                      'Пациентов в очереди'])
+for i in range(10):
+    if i == 9:
         table1.add_row([Event[i], TimeEvent[i] + 8, N[i]], divider=True)
     else:
         table1.add_row([Event[i], TimeEvent[i] + 8, N[i]])
-for i in range(len(Event) - 15, len(Event)):
+for i in range(len(Event) - 10, len(Event)):
     table1.add_row([Event[i], TimeEvent[i] + 8, N[i]])
 print(table1)
 
@@ -176,20 +178,20 @@ print(table1)
 for i in range(len(TimeEvent)):
     # Если событие - приход клиента (первый в очереди), и в очереди только один клиент,
     # то его время ожидания равно 0.
-    if Event[i][0] == 'П' and (N[i] <= 1):
+    if Event[i][0] == 'К' and (N[i] <= 1):
         W.append(0)
 
     # Если событие - приход клиента, и в очереди уже есть другие клиенты,
     # вычисляем время ожидания как разницу между временем его прихода и временем прихода предыдущего клиента.
-    elif Event[i][0] == 'П':
-        ClientOfEvent.append(TimeEvent[i] + 8)
+    elif Event[i][0] == 'К':
+        ClientOfEvent.append(TimeEvent[i])
 
     # Если событие - уход клиента, и в очереди есть ожидающие клиенты,
     # извлекаем время прихода первого клиента из списка ожидающих и вычисляем его время ожидания.
     if Event[i][0] == 'У' and (len(ClientOfEvent) != 0):
         elem = ClientOfEvent[0]
         ClientOfEvent = ClientOfEvent[1:]
-        W.append(TimeEvent[i] + 8 - elem)
+        W.append(TimeEvent[i] - elem)
 
     # Если событие - приход клиента, и это либо первый клиент в системе, либо после него был уход клиента,
     # обновляем время начала работы устройства.
@@ -200,4 +202,46 @@ for i in range(len(TimeEvent)):
             else:
                 Work = TimeEvent[i] - TimeEvent[i - 1]
 
+
+table2 = PrettyTable(['№',
+                      'Время прибытия(Ai)',
+                      'Время ухода(Di)',
+                      'Время обслуживания(Vi)',
+                      'Время в очереди(Wi)',
+                      'Время в системе(Di - Ai)'])
+for i in range(10):
+    if i == 9:
+        table2.add_row([i + 1, A[i] + 8, D[i] + 8, D[i] - A[i] - W[i], W[i], D[i] - A[i]], divider=True)
+    else:
+        table2.add_row([i + 1, A[i] + 8, D[i] + 8, D[i] - A[i] - W[i], W[i], D[i] - A[i]])
+for i in range(len(A) - 10, len(A)):
+    table2.add_row([i + 1, A[i] + 8, D[i] + 8, D[i] - A[i] - W[i], W[i], D[i] - A[i]])
+print('\n\n', table2)
+
+
+
+
+# Подсчет среднего времени в системе в ручную
+# medium_time_in_system = sum(diff_Di_Ai) / len(diff_Di_Ai)
+# print('Среднее время в системеD-A: ', np.mean(medium_time_in_system))
+
+print("Оценки:")
+print('Количество пациентов за смену: ', Amount)
+print('Время задержки закрытия: ', Tp)
+print('Среднее время пациента в очереди: ', np.mean(W))
+print('Среднее время пациента в системе: ', np.mean(np.array(D) - np.array(A)))
+print('Коэффициент занятости устройства: ', 1-(Work / T))
+print('Средняя длина очереди: ', np.mean(N))
+
+print("=============")
+coming_patient_list = A.copy()
+for elem in range(len(coming_patient_list)):
+    coming_patient_list[elem] = round(coming_patient_list[elem], 5)
+print(coming_patient_list)
+
+print("=============")
+coming_patient_list_real_time = coming_patient_list.copy()
+for item in range(len(coming_patient_list_real_time)):
+    coming_patient_list_real_time[item] = round(coming_patient_list_real_time[item] + 8.0, 5)
+print(coming_patient_list_real_time)
 
