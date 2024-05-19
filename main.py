@@ -90,7 +90,7 @@ def add_client():
     Amount = Amount + 1                                         # Amount - количество пациентов
     N.append(n)                                                 # N - количество клиентов
     TimeEvent.append(time)                                      # TimeEvent - время события
-    Event.append('Клиент ' + str(Na) + ' пришел')               # Event - событие (пациент пришел)
+    Event.append('Приход клиента ' + str(Na))               # Event - событие (пациент пришел)
 
 
 # Уход пациента
@@ -120,7 +120,7 @@ def remove_last_clients():
     D.append(time)                                              # D - время ухода пациента
     TimeEvent.append(time)                                      # TimeEvent - время события
     N.append(n)                                                 # N - количество клиентов
-    Event.append('Уход клиента: ' + str(Nd))                    # Event - событие (пациент ушел)
+    Event.append('Уход клиента ' + str(Nd))                    # Event - событие (пациент ушел)
 
 
 # Если нет никаких пациентов
@@ -162,7 +162,7 @@ while True:
 
 table1 = PrettyTable(['Событие',
                       'Время события',
-                      'Пациентов в очереди'])
+                      'Клиентов в очереди'])
 for i in range(10):
     if i == 9:
         table1.add_row([Event[i], TimeEvent[i] + 8, N[i]], divider=True)
@@ -178,12 +178,12 @@ print(table1)
 for i in range(len(TimeEvent)):
     # Если событие - приход клиента (первый в очереди), и в очереди только один клиент,
     # то его время ожидания равно 0.
-    if Event[i][0] == 'К' and (N[i] <= 1):
+    if Event[i][0] == 'П' and (N[i] <= 1):
         W.append(0)
 
     # Если событие - приход клиента, и в очереди уже есть другие клиенты,
     # вычисляем время ожидания как разницу между временем его прихода и временем прихода предыдущего клиента.
-    elif Event[i][0] == 'К':
+    elif Event[i][0] == 'П':
         ClientOfEvent.append(TimeEvent[i])
 
     # Если событие - уход клиента, и в очереди есть ожидающие клиенты,
@@ -193,7 +193,6 @@ for i in range(len(TimeEvent)):
         ClientOfEvent = ClientOfEvent[1:]
         W.append(TimeEvent[i] - elem)
 
-    # Если событие - приход клиента, и это либо первый клиент в системе, либо после него был уход клиента,
     # обновляем время начала работы устройства.
     if Event[i][0] == 'П':
         if (i == 0) or (N[i - 1] == 0):
@@ -201,6 +200,7 @@ for i in range(len(TimeEvent)):
                 Work = TimeEvent[i]
             else:
                 Work = TimeEvent[i] - TimeEvent[i - 1]
+    # Если событие - приход клиента, и это либо первый клиент в системе, либо после него был уход клиента,
 
 
 table2 = PrettyTable(['№',
@@ -222,24 +222,16 @@ print('\n\n', table2)
 
 
 print("Оценки:")
-print('Количество пациентов за смену: ', Amount)
+print('Количество клиентов за смену: ', Amount)
 print('Время задержки закрытия: ', Tp)
-print('Среднее время пациента в очереди: ', np.mean(W))
-print('Среднее время пациента в системе: ', np.mean(np.array(D) - np.array(A)))
+print('Среднее время клиента в очереди: ', np.mean(W))
+print('Среднее время клиента в системе: ', np.mean(np.array(D) - np.array(A)))
 print('Коэффициент занятости устройства: ', 1 - (Work / T))
 print('Средняя длина очереди: ', np.mean(N))
 
-print("=============")
-coming_patient_list = A.copy()
-for elem in range(len(coming_patient_list)):
-    coming_patient_list[elem] = round(coming_patient_list[elem], 5)
-print(coming_patient_list)
-
-print("=============")
-coming_patient_list_real_time = coming_patient_list.copy()
-for item in range(len(coming_patient_list_real_time)):
-    coming_patient_list_real_time[item] = round(coming_patient_list_real_time[item] + 8.0, 5)
-print(coming_patient_list_real_time)
+print("A = ", *A, sep='\n')
+print("D = ", *D, sep='\n')
+print("W = ", *W, sep='\n')
 
 plt.title("Очереди")
 plt.plot(np.arange(T_start, T_end, T / len(N)), N)
@@ -247,5 +239,11 @@ plt.show()
 
 V = [D[i] - A[i] - W[i] for i in range(len(A))]
 plt.title("График обслуживания")
+plt.plot(list(range(len(A))), V)
+plt.show()
+
+
+V = [D[i] - A[i] for i in range(len(A))]
+plt.title("График времени в системе")
 plt.plot(list(range(len(A))), V)
 plt.show()
